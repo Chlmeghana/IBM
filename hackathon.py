@@ -104,7 +104,7 @@ class expandedEmulator(Emulator):
                 if line != 80*" ":
                     print("-->",line)"""
         return non_empty[:-1]
-    def ipAdress(self,fields_list,index_number, flag= None, quiet=False):
+    def edl_dev(self,fields_list,index_number, flag= None, quiet=False):
         s = self.save_screen_string()
         non_empty = list(filter(None, s.data))
         if not quiet:
@@ -295,7 +295,7 @@ class console:
                 self.em.send_enter()
 
 
-    def ipAddress_Function(self,fields):
+    def edl_dev_function(self,fields):
         self.em.send_clear()
         s = self.em.save_screen_string()
         c=0
@@ -304,7 +304,7 @@ class console:
         index_number=0
         while True:
             time.sleep(1)
-            screen_lines = self.em.ipAdress(fields,index_number,quiet=self.args['quiet'])
+            screen_lines = self.em.edl_dev(fields,index_number,quiet=self.args['quiet'])
             index_number+=1
             if len(screen_lines)==2 and screen_lines[1]==1:
                 return screen_lines[0]
@@ -392,7 +392,7 @@ def main():
         if r != ALL_FINE:
             raise CMSAPIException(error_code=r)
         fields=[" "," ","TCPC0","TCPIP ","MODULE","BOTH","NOBOM","LOG","NOBATCH","HASHED","A","PRINT"]
-        result1=c.ipAddress_Function(fields)
+        result1=c.edl_dev_function(fields)
         print(result1)
         c.logoff()
     except CMSAPIException as ex:
