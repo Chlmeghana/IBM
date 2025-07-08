@@ -124,28 +124,6 @@ class expandedEmulator(Emulator):
                         print("sent enter")
 
         return non_empty[:-1]
-    def bucketinfo(self,filename= None, flag=0 , quiet=False):
-        s = self.save_screen_string()
-        data = list(s.data)
-        if not quiet:
-            for line in data[:-1]:
-                if line != 80*" ":
-                    print("-->",line)
-                    if filename in line or flag==-2:
-                        #print(flag,"ihgytfrdfgthykhgfd")
-                        if flag==0:
-                            ind=data.index(line)
-                        else:
-                            ind=len(data)+flag
-                        for i in range(ind, -1, -1):
-                            match = re.search(r'\d+\D', data[i])
-                            if not match:
-                                return False
-                            after_number = data[i][match.end() - 1:] 
-                            if not after_number.startswith("    "):return data[i]
-                        else:
-                            return "no bucket found"
-        return data[:-1]
 
 class console:
 
@@ -228,73 +206,6 @@ class console:
                 return self.findStatus(status) if status else True
         return False
 
-    def execute_all(self, commands):
-        for command in commands:
-            self.execute_command(command.rstrip())
-    def ParentBucket(self,lpar, file):
-        if file.endswith(".BUCKET"):
-            return file
-        file=file.split('.')[0]+" "
-        self.em.send_clear()
-        s = self.em.save_screen_string()
-        if not file:
-            raise Exception('Empty filename.')
-        c = 0
-        self.em.send_string(f"filel {lpar} buckinfo q")
-        self.em.send_enter()
-        filename = file
-        flag=0
-        while True:
-            screen_lines = self.em.bucketinfo(file,flag, quiet=self.args['quiet'])
-            if screen_lines=="no bucket found":
-                print("no bucket found")
-                self.em.exec_command(b'PF(7)')
-                screen_lines = self.em.bucketinfo(file,flag, quiet=self.args['quiet'])
-                print("clicked pf7 ",screen_lines)
-                if "BUCKET" in screen_lines:
-                    return screen_lines
-                flag=-2
-                continue
-
-            if "BUCKET" in screen_lines:
-                return screen_lines
-            s = self.em.save_screen_string()
-            if self.findString('FILELIST'):
-                self.em.send_pf(12)
-                self.em.send_pf(11)
-                
-            if self.findStatus('CP READ') or self.findStatus('VM READ'):
-                self.em.send_clear()
-                self.em.send_enter()
-            if self.findString("1=Hlp 2=Add 3=Quit 4=Tab 5=SChg 6=? 7=Bkwd 8=Fwd 9=Rpt 10=R/L 11=Sp/Jn 12=Cursr"):
-                self.em.send_string(f"all/{file}")
-                self.em.send_enter()
-                self.em.send_string(f"all")
-                self.em.send_enter()              
-
-
-            logging.debug(screen_lines)
-            if self.findStatus('VM READ'):
-                self.em.send_string('b')
-            if self.findString('CMS'):
-                self.em.send_clear()
-                
-            while self.findStatus('RUNNING'):
-                time.sleep(3)
-                if c == 0:
-                    self.em.send_string(f"filel {lpar} buckinfo q")
-                    self.em.send_enter()
-                    c = 1
-                    break
-            while self.findStatus('VM READ'):
-                self.em.send_enter()
-                self.em.send_enter()
-                time.sleep(1)
-            if self.findStatus('MORE...') or self.findStatus('HOLDING'):
-                self.em.send_clear()
-                self.em.send_enter()
-
-
     def edl_dev_function(self,fields):
         self.em.send_clear()
         s = self.em.save_screen_string()
@@ -350,7 +261,6 @@ class console:
         self.em.terminate()
 
 def main():
-    print("main from execvm7=================")
     adress="gdlvm7.pok.ibm.com"
     parser = argparse.ArgumentParser(description="CMS 3270 Automation Tool")
     parser.add_argument('--host', default=adress)
@@ -391,7 +301,7 @@ def main():
         r = c.logon()
         if r != ALL_FINE:
             raise CMSAPIException(error_code=r)
-        fields=[" "," ","TCPC0","TCPIP ","MODULE","BOTH","NOBOM","LOG","NOBATCH","HASHED","A","PRINT"]
+        fields=[" "," ","TCPC0","TCPIP ","MODULE","BOTH","NOBOM","LOG","NOBATCH","HASHED","A"," "]
         result1=c.edl_dev_function(fields)
         print(result1)
         c.logoff()
