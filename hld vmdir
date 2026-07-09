@@ -1,0 +1,255 @@
+
+### Msg Type Scenario
+The Msg Type scenario is utilized for commands that return text-based responses directly from DirMaint, such as queries that retrieve configuration or status information from the user directory. For example, commands like DIRM FOR LNXTOOL2 PRIVCLASS ? or DIRM FOR LNXTOOL2 CRYPTO ? generate output that is purely informational text, which is transmitted as a message payload without any file attachments.
+
+**Request from Linux (Msg Type For commands that do not include file attachments)**
+
+```
+msglen
+headerlen
+<header begin>
+    timestamp = <cp timestamp>
+    user = <linux guest>
+    os_user = <linux os user>
+    pid = <linux os pid>
+    msg_part = 1/n
+    req_type = 0    <file=1 / msg_only=0>
+    data_len = <no. of chars of data>
+<header end>
+<Data of length data_len >
+```
+
+| Field | Description |
+|-------|-------------|
+| msglen | Total length of the complete message |
+| headerlen | Length of the header section |
+| timestamp | CP timestamp when the message was generated |
+| user | Guest user ID (invoker) |
+| os_user | Linux OS username |
+| pid | Linux process ID |
+| msg_part | Current message part number (e.g., 1/n, 2/n) |
+| req_type | 0 = text-only |
+| data_len | Length of the data payload |
+| data | The actual command text |
+
+<br>
+
+**Response from DirMaint (Msg Type)**
+
+```
+msglen
+headerlen
+<header begin>
+    timestamp = <cp timestamp>
+    user = DirMaint
+    msg_part = 1/n
+    return_code = 0    <success=0 / error=1>
+    resp_type = 0      <file=1 / msg_only=0>
+    data_len = <no. of chars of data>
+<header end>
+<Data of length data_len >
+```
+
+| Field | Description |
+|-------|-------------|
+| msglen | Total length of the complete message |
+| headerlen | Length of the header section |
+| timestamp | CP timestamp when the response was generated |
+| user | DirMaint (service machine identifier) |
+| msg_part | Current message part number |
+| return_code | 0 = success, 1 = error |
+| resp_type | 0 = text-only |
+| data_len | Length of the data payload |
+| data | The response text |
+
+<br>
+
+### File Type Scenario
+The File Type scenario is employed for commands that involve the exchange of SPOOL files between DirMaint and the Linux guest, such as directory reviews or retrievals. For instance, commands like DIRM FOR LNXTOOL2 REV or DIRM FOR LNXTOOL2 GET generate output in the form of SPOOL files (e.g., LNXTOOL2 DIRECT A or LNXTOOL2 DIRECT B), which contain the complete directory entry data. These files are parsed by the DirMaint service machine and transmitted as IUCV messages with file metadata and content, enabling the VMDIR client to reconstruct and save the file locally. 
+
+**Request from Linux**
+For commands that include file attachments:
+
+```
+msglen
+headerlen
+<header begin>
+    timestamp = <cp timestamp>
+    user = <guest>
+    os_user = <linux os user>
+    pid = <linux os pid>
+    msg_part = 1/n
+    req_type = 1    <file=1 / msg_only=0>
+    data_len = <no. of chars of data>
+    file_count = <int>
+<header end>
+<Data of length data_len >
+<file1_name>.<filetype>.<filelen_in_chars>
+<file1_data of length filelen_in_chars >
+
+<file2_name>.<filetype>.<filelen_in_chars>
+<file2_data of length filelen_in_chars >
+```
+
+| Field | Description |
+|-------|-------------|
+| msglen | Total length of the complete message |
+| headerlen | Length of the header section |
+| timestamp | CP timestamp when the message was generated |
+| user | Guest user ID (invoker) |
+| os_user | Linux OS username |
+| pid | Linux process ID |
+| msg_part | Current message part number (e.g., 1/n) |
+| req_type | 1 = includes file data |
+| data_len | Length of the data payload (header + file metadata + file data) |
+| file_count | Number of files being transmitted |
+| file1_name | Name of the first file |
+| filetype | Type/extension of the file |
+| filelen_in_chars | Length of the file data in characters |
+| file1_data | The actual file content |
+
+<br>
+
+**Response from DirMaint + File**
+For responses that include file data:
+
+```
+msglen
+headerlen
+<header begin>
+    timestamp = <cp timestamp>
+    user = DirMaint
+    msg_part = 1/n
+    return_code = 0    <success=0 / error=1>
+    resp_type = 1      <file=1 / msg_only=0>
+    data_len = <no. of chars of data>
+    file_count = <int>
+<header end>
+<Data of length data_len >
+<file1_name>.<filetype>.<filelen_in_chars>
+<file1_data of length filelen_in_chars >
+
+<file2_name>.<filetype>.<filelen_in_chars>
+<file2_data of length filelen_in_chars >
+```
+
+| Field | Description |
+|-------|-------------|
+| msglen | Total length of the complete message |
+| headerlen | Length of the header section |
+| timestamp | CP timestamp when the response was generated |
+| user | DirMaint (service machine identifier) |
+| msg_part | Current message part number |
+| return_code | 0 = success, 1 = error |
+| resp_type | 1 = includes file data |
+| data_len | Length of the data payload |
+| file_count | Number of files being transmitted |
+
+<br>
+
+---
+
+
+### TLV Format Example for Msg Type Request
+
+**Message Structure**
+
+```
+msglen
+headerlen
+<header begin>
+    timestamp = <cp timestamp>
+    user = <linux guest>
+    os_user = <linux os user>
+    pid = <linux os pid>
+    msg_part = 1/n
+    req_type = 0    <file=1 / msg_only=0>
+    data_len = <no. of chars of data>
+<header end>
+<Data of length data_len>
+```
+
+---
+
+**TLV Tag Definitions**
+
+| Field | Tag (Hex) | Description |
+|-------|-----------|-------------|
+| msglen | `01` | Total length of complete message |
+| headerlen | `02` | Length of header section |
+| timestamp | `03` | CP timestamp |
+| user | `04` | Linux guest user ID |
+| os_user | `05` | Linux OS username |
+| pid | `06` | Linux process ID |
+| msg_part | `07` | Current message part number |
+| req_type | `08` | Request type (0 = msg_only, 1 = file) |
+| data_len | `09` | Length of data payload |
+| data | `0A` | Actual command text |
+
+---
+
+**Example Scenario**
+
+* Command: `DIRM FOR LNXTOOL2 PRIVCLASS ?`
+* User: `LNXTOOL2`
+* OS User: `lnxadmin`
+* PID: `12345`
+* CP Timestamp: `2026-07-07 14:32:15`
+
+---
+
+**TLV Encoded Message**
+
+```
+01 82 01 2A
+02 82 00 64
+03 11 32 30 32 36 2D 30 37 2D 30 37 20 31 34 3A 33 32 3A 31 35
+04 08 4C 4E 58 54 4F 4F 4C 32
+05 08 6C 6E 78 61 64 6D 69 6E
+06 02 30 39
+07 01 31
+08 01 30
+09 82 00 1C
+0A 1C 44 49 52 4D 20 46 4F 52 20 4C 4E 58 54 4F 4F 4C 32 20 50 52 49 56 43 4C 41 53 53 20 3F
+```
+
+---
+
+**Field-by-Field Breakdown**
+
+
+| Field | TLV | Length | Value | Description |
+|-------|-----|--------|-------|-------------|
+| **msglen** | `01 82 01 2A` | `82 01 2A` (298 bytes) | 298 bytes | Total message length |
+| **headerlen** | `02 82 00 64` | `82 00 64` (100 bytes) | 100 bytes | Header length |
+| **timestamp** | `03 11 32 30 32 36 2D 30 37 2D 30 37 20 31 34 3A 33 32 3A 31 35` | `11` (17 bytes) | `2026-07-07 14:32:15` | CP timestamp |
+| **user** | `04 08 4C 4E 58 54 4F 4F 4C 32` | `08` (8 bytes) | `LNXTOOL2` | Linux guest |
+| **os_user** | `05 08 6C 6E 78 61 64 6D 69 6E` | `08` (8 bytes) | `lnxadmin` | OS username |
+| **pid** | `06 02 30 39` | `02` (2 bytes) | `39` (hex) = `12345` (dec) | Process ID |
+| **msg_part** | `07 01 31` | `01` (1 byte) | `1` | Message part (1/n) |
+| **req_type** | `08 01 30` | `01` (1 byte) | `0` | Request type (text-only) |
+| **data_len** | `09 82 00 1C` | `82 00 1C` (28 bytes) | 28 bytes | Length of command data |
+| **data** | `0A 1C 44 49 52 4D 20 46 4F 52 20 4C 4E 58 54 4F 4F 4C 32 20 50 52 49 56 43 4C 41 53 53 20 3F` | `1C` (28 bytes) | `DIRM FOR LNXTOOL2 PRIVCLASS ?` | Actual command |
+
+
+---
+
+**Decoded Message**
+
+```
+
+01 82 <01 2A = msglen 298>
+02 82 <00 64 = headerlen 100>
+03 11 <32 30 32 36 2D 30 37 2D 30 37 20 31 34 3A 33 32 3A 31 35 = CP timestamp 2026-07-07 14:32:15>
+04 08 <4C 4E 58 54 4F 4F 4C 32 = user LNXTOOL2>
+05 08 <6C 6E 78 61 64 6D 69 6E = os_user lnxadmin>
+06 02 <30 39 = pid 12345>
+07 01 <31 = msg_part 1>
+08 01 <30 = req_type 0>
+09 82 <00 1C = data_len 28>
+0A 1C <44 49 52 4D 20 46 4F 52 20 4C 4E 58 54 4F 4F 4C 32 20 50 52 49 56 43 4C 41 53 53 20 3F = data DIRM FOR LNXTOOL2 PRIVCLASS ?>
+
+
+```
+
+---
