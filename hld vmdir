@@ -1,6 +1,11 @@
 
 ### Msg Type Scenario
-The Msg Type scenario is utilized for commands that return text-based responses directly from DirMaint, such as queries that retrieve configuration or status information from the user directory. For example, commands like DIRM FOR LNXTOOL2 PRIVCLASS ? or DIRM FOR LNXTOOL2 CRYPTO ? generate output that is purely informational text, which is transmitted as a message payload without any file attachments.
+- The Msg Type scenario is utilized for commands that return text-based responses directly from DirMaint.
+- Examples include queries that retrieve configuration or status information from the user directory, such as:
+  - `DIRM FOR LNXTOOL2 PRIVCLASS ?`
+  - `DIRM FOR LNXTOOL2 CRYPTO ?`
+- These commands generate purely informational text output.
+- The output is transmitted as a message payload without any file attachments.
 
 **Request from Linux (Msg Type For commands that do not include file attachments)**
 
@@ -65,7 +70,6 @@ headerlen
 <br>
 
 ### File Type Scenario
-The File Type scenario is employed for commands that involve the exchange of SPOOL files between DirMaint and the Linux guest, such as directory reviews or retrievals. For instance, commands like DIRM FOR LNXTOOL2 REV or DIRM FOR LNXTOOL2 GET generate output in the form of SPOOL files (e.g., LNXTOOL2 DIRECT A or LNXTOOL2 DIRECT B), which contain the complete directory entry data. These files are parsed by the DirMaint service machine and transmitted as IUCV messages with file metadata and content, enabling the VMDIR client to reconstruct and save the file locally. 
 
 **Request from Linux**
 For commands that include file attachments:
