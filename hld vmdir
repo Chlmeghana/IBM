@@ -70,6 +70,15 @@ headerlen
 <br>
 
 ### File Type Scenario
+- The File Type scenario handles commands that exchange SPOOL files between DirMaint and the Linux guest.
+- Examples include directory reviews and retrievals, such as:
+  - `DIRM FOR LNXTOOL2 REV`
+  - `DIRM FOR LNXTOOL3 GET`
+- These commands produce SPOOL files (e.g., `LNXTOOL2 DIRECT A` or `LNXTOOL3 DIRECT A`) containing complete directory entry data.
+- The DirMaint service machine parses these files and transmits them as IUCV messages with file metadata and content.
+- The VMDIR client reconstructs and saves the files locally.
+
+
 
 **Request from Linux**
 For commands that include file attachments:
